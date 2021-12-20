@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+<meta name="date" content="2021-12-19" />
+
+<title>Using Covid Resiliency Scores to make Valuable Supply Chain Insurance Decisions</title>
+
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+<style type="text/css">
+  p.abstract{
+    text-align: center;
+    font-weight: bold;
+  }
+  div.abstract{
+    margin: auto;
+    width: 90%;
+  }
+</style>
+
+
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Trusting Bloomberg for Insurance Decisions</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Using Covid Resiliency Scores to make Valuable Supply Chain Insurance Decisions</h1>
+<h4 class="author">Alexander Nieves</h4>
+<address class="author_afil">
+Manhattan College<br><a class="author_email" href="mailto:#"><a href="mailto:anieves02@manhattan.edu" class="email">anieves02@manhattan.edu</a></a>
+</address>
+<h4 class="date">2021-12-19</h4>
+<div class="abstract">
+<p class="abstract">Abstract</p>
+<p>A database is introduced, where a case study is finally proposed. Moving foward creates a necessity to verify, modify, then propose a final solution.</p>
+</div>
+
+</div>
+
+
+<div id="base-introduction" class="section level1" number="1">
+<h1><span class="header-section-number">1</span> Base Introduction</h1>
+<p>Omicron is here - how should insurance companies respond?</p>
+<ul>
+<li><p>Our client, a supply chain company, is worried about the new variant</p></li>
+<li><p>Objective: Offer a recommendation on an acceptance threshold based on a COVID resiliency Ranking given by Bloomberg</p></li>
+<li><p>Organization of the report: Manhattan College</p></li>
+</ul>
+</div>
+<div id="to-begin-some-context" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> To begin, some Context</h1>
+<p>My name is Alex, and I am acting as a junior consultant for XYZ Insurance Consulting.</p>
+<p>The company operates internationally in several countries.Recent news about the Omicron Covid variant is giving my client worries about claims management regarding covering Covid Hospitalizations (workers Compensation overall).
+Bloomberg recently made a list, ranking countries in resiliency against Covid-19. If this ranking was statistically reinforced by our data guys, we could make a recommendation to our client that any operation existing in any country under a certain ranking threshold should highly consider moving to a different country. To do this, our firm would have to:</p>
+<ul>
+<li><p>Take a deeper dive into the methodology of the rankings</p></li>
+<li><p>Understand which variables go into producing said rankings</p></li>
+<li><p>Make any modifications that we may deem necessary</p></li>
+<li><p>Either accept or reject the current rankings</p></li>
+</ul>
+<p>Finally, we would create a threshold for the rankings, then give this to our client.</p>
+<div id="a-quick-note-before-we-begin-appendices-and-sensitivity-a-possible-trigger-warning" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> A quick note Before we Begin: Appendices and Sensitivity; a possible Trigger Warning</h2>
+<p>The following paper had some initial quirks that, once wrestles with, gave us the means to produce viable results. In the latter part of the paper exists an appendix, please visit that to learn more about how I got to the final model used.</p>
+<p>As well, I must say that, due to the nature of the topic, I will be discussing fatalities of Covid 19. When combined with topics of Insurance, some may feel a sense of morbidity or apathy. I want to stress that, above all, the true horror of the pandemic are the brothers and sisters we’ve lost to the virus. Every life is sacred, but when discussing insurance, there needs to be a line.</p>
+<p>For the sense of analysis, I will be brief when discussing topics such as fatalities, but in the Appendix I may go into further detail.</p>
+</div>
+</div>
+<div id="that-being-said-let-us-continue-into-the-meat-and-potatoes" class="section level1" number="3">
+<h1><span class="header-section-number">3</span> That being said, let us continue into the meat and potatoes</h1>
+<p>In this section, we will go over the following points:</p>
+<ul>
+<li><p>First, we will call the case study variables, such as countries, data sets, etc.</p></li>
+<li><p>We will then re-create the bloomberg Resiliency scores</p></li>
+<li><p>We will then quickly analyze the currents weights, then re-adjust those weights using applicable logic</p></li>
+<li><p>We will re-calculate the index, taking a moment to analyze the new results</p></li>
+<li><p>Finally, we will create a threshhold and make a client recommendation</p></li>
+</ul>
+<div id="now-to-call-the-list-of-countries-our-client-has" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Now, to call the list of countries our client has</h2>
+<pre class="r"><code>clientCountries&lt;- data.frame(&quot;Countries&quot; = c(&quot;U.S.&quot;, &quot;Mainland China&quot;,&quot;Japan&quot;, &quot;Malaysia&quot;, &quot;Vietnam&quot;, &quot;Germany&quot;,&quot;Ireland&quot; ))</code></pre>
+</div>
+<div id="thank-you-bloomberg-for-this-data" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> Thank you, Bloomberg, for this data:</h2>
+<pre class="r"><code>df&lt;- read_excel(&quot;Data/Bloomberg Covid Resilience Ranking.xlsx&quot;)
+(head(df))</code></pre>
+<pre><code>## # A tibble: 6 × 16
+##    RANK CHANGE ECONOMY `BLOOMBERG RESILIEN… `PEOPLE COVERED BY… `LOCKDOWN SEVER…
+##   &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;                  &lt;dbl&gt;               &lt;dbl&gt;            &lt;dbl&gt;
+## 1     1      0 Ireland                 75.1               0.738               42
+## 2     2      0 Spain                   74.6               0.767               41
+## 3     3      3 U.A.E.                  74.6               0.973               39
+## 4     4      1 Denmark                 74.3               0.761               24
+## 5     5      1 Finland                 74.2               0.726               24
+## 6     6      4 Norway                  73.1               0.739               20
+## # … with 10 more variables: FLIGHT CAPACITY &lt;dbl&gt;,
+## #   VACCINATED TRAVEL ROUTES &lt;dbl&gt;, 1-MONTH CASES PER 100,000 &lt;dbl&gt;,
+## #   3-MONTH CASE FATALITY RATE &lt;dbl&gt;, TOTAL DEATHS PER 1 MILLION &lt;dbl&gt;,
+## #   POSITIVE TEST RATE &lt;dbl&gt;, COMMUNITY MOBILITY &lt;dbl&gt;,
+## #   2021 GDP GROWTH FORECAST &lt;dbl&gt;, UNIVERSAL HEALTHCARE COVERAGE &lt;dbl&gt;,
+## #   HUMAN DEVELOPMENT INDEX &lt;dbl&gt;</code></pre>
+<p>For analysis purposes, we will change the column names using Dplyr:</p>
+<pre class="r"><code>bloombergData = rename(df, 
+       rank = RANK,
+       change = CHANGE,
+       economy = ECONOMY,
+       resilience = &#39;BLOOMBERG RESILIENCE SCORE&#39;,
+       vaccine.Coverage = &#39;PEOPLE COVERED BY VACCINES&#39;,
+       lockdown.Severity = &#39;LOCKDOWN SEVERITY&#39;,
+       flight.Cap = &#39;FLIGHT CAPACITY&#39;,
+       routes = &#39;VACCINATED TRAVEL ROUTES&#39;,
+       one.Month.Cases = &#39;1-MONTH CASES PER 100,000&#39;,
+       three.Month.Fatalities = &#39;3-MONTH CASE FATALITY RATE&#39;,
+       deaths = &#39;TOTAL DEATHS PER 1 MILLION&#39;,
+       test.Rate = &#39;POSITIVE TEST RATE&#39;,
+       mobility = &#39;COMMUNITY MOBILITY&#39;,
+       gdp = &#39;2021 GDP GROWTH FORECAST&#39;,
+       healthcare = &#39;UNIVERSAL HEALTHCARE COVERAGE&#39;,
+       dev.Index = &#39;HUMAN DEVELOPMENT INDEX&#39;
+       )
+(head(bloombergData))</code></pre>
+<pre><code>## # A tibble: 6 × 16
+##    rank change economy resilience vaccine.Coverage lockdown.Severity flight.Cap
+##   &lt;dbl&gt;  &lt;dbl&gt; &lt;chr&gt;        &lt;dbl&gt;            &lt;dbl&gt;             &lt;dbl&gt;      &lt;dbl&gt;
+## 1     1      0 Ireland       75.1            0.738                42     -0.442
+## 2     2      0 Spain         74.6            0.767                41     -0.244
+## 3     3      3 U.A.E.        74.6            0.973                39     -0.396
+## 4     4      1 Denmark       74.3            0.761                24     -0.376
+## 5     5      1 Finland       74.2            0.726                24     -0.593
+## 6     6      4 Norway        73.1            0.739                20     -0.272
+## # … with 9 more variables: routes &lt;dbl&gt;, one.Month.Cases &lt;dbl&gt;,
+## #   three.Month.Fatalities &lt;dbl&gt;, deaths &lt;dbl&gt;, test.Rate &lt;dbl&gt;,
+## #   mobility &lt;dbl&gt;, gdp &lt;dbl&gt;, healthcare &lt;dbl&gt;, dev.Index &lt;dbl&gt;</code></pre>
+</div>
+<div id="now-we-need-to-re-create-bloombergs-data" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> Now we need to re-create Bloomberg’s Data</h2>
+<p>Brian Lee Yung Rowe made a skeptical analysis that was done on the bloomberg rankings. I must say that his article came out before the methodology (<span class="citation"><a href="#ref-bloombergMethodology" role="doc-biblioref">Rachel Tang</a> (<a href="#ref-bloombergMethodology" role="doc-biblioref">2021</a>)</span>) article was recently edited. Judging by the tone of Rowe’s article, it sems that the piece was written before the methodology was released.</p>
+<p>That being said, Rowe was great at assuming firsthand that there may be weights attached to a model used if there was a linear regression, so we begin with that.</p>
+<p>This code chunk is also mostly taken from Rowe’s article. (<span class="citation"><a href="#ref-cartesianFaith" role="doc-biblioref">Rowe</a> (<a href="#ref-cartesianFaith" role="doc-biblioref">2021</a>)</span>)</p>
+<pre class="r"><code>model&lt;- lm(resilience ~ vaccine.Coverage + lockdown.Severity + flight.Cap + routes + one.Month.Cases + three.Month.Fatalities + deaths + test.Rate + mobility + gdp + healthcare + dev.Index, bloombergData)
+
+
+summary(model)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = resilience ~ vaccine.Coverage + lockdown.Severity + 
+##     flight.Cap + routes + one.Month.Cases + three.Month.Fatalities + 
+##     deaths + test.Rate + mobility + gdp + healthcare + dev.Index, 
+##     data = bloombergData)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.13868 -0.04285  0.00145  0.04420  0.19973 
+## 
+## Coefficients:
+##                          Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)             3.484e+01  1.813e-01  192.16   &lt;2e-16 ***
+## vaccine.Coverage        8.792e+00  1.085e-01   81.07   &lt;2e-16 ***
+## lockdown.Severity      -1.328e-01  9.219e-04 -144.04   &lt;2e-16 ***
+## flight.Cap              8.837e+00  6.353e-02  139.10   &lt;2e-16 ***
+## routes                  3.201e-02  1.465e-04  218.46   &lt;2e-16 ***
+## one.Month.Cases        -4.240e-03  3.864e-05 -109.72   &lt;2e-16 ***
+## three.Month.Fatalities -1.083e+02  1.067e+00 -101.44   &lt;2e-16 ***
+## deaths                 -1.362e-03  1.416e-05  -96.18   &lt;2e-16 ***
+## test.Rate              -3.704e+01  2.956e-01 -125.29   &lt;2e-16 ***
+## mobility                9.985e+00  1.210e-01   82.55   &lt;2e-16 ***
+## gdp                     5.916e+01  6.188e-01   95.60   &lt;2e-16 ***
+## healthcare              1.453e-01  2.191e-03   66.32   &lt;2e-16 ***
+## dev.Index               1.966e+01  3.512e-01   55.99   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.08432 on 36 degrees of freedom
+##   (4 observations deleted due to missingness)
+## Multiple R-squared:  0.9999, Adjusted R-squared:  0.9999 
+## F-statistic: 4.181e+04 on 12 and 36 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>max(model$coefficients)</code></pre>
+<pre><code>## [1] 59.1566</code></pre>
+<pre class="r"><code>min(model$coefficients)</code></pre>
+<pre><code>## [1] -108.2805</code></pre>
+</div>
+<div id="analyzing-results" class="section level2" number="3.4">
+<h2><span class="header-section-number">3.4</span> Analyzing results</h2>
+<p>When we take a look at the results, doing a multi-linear regression gets us quite close to the real deal. That’s a good start, at least.</p>
+<p>That being said, certain variance in weights is vast. The maximum coeficient was forecasted GDP at a weight of 59.1566, and the min was three month fatality with a weight of -108.25. This works when rating countries based on economic factors (especially considering that the rankings came from Bloomberg), but when we consider factors like insurance claims, something like the amount of vaccinated plane routes is more important than a country’s GDP.</p>
+<p>As well, there is a distinct difference between a factor that would be more impactful for busienss decisions vs. insurance risk.</p>
+<p>For more info on consideration on importance of certain factors over others in the insurance world, please reference the appendix.</p>
+</div>
+<div id="adjusting-the-weights-is-the-next-step" class="section level2" number="3.5">
+<h2><span class="header-section-number">3.5</span> Adjusting the Weights is the next step</h2>
+<p>If we adjust the rankings, we may see differences in the rankings themselves, which would lead us to either accept or reject the current rankings.</p>
+<p>To do this, conceptualize the weights:</p>
+<pre class="r"><code>modelWeights = model$coefficients</code></pre>
+<p>Here are the factors in descending order of weight:</p>
+<ul>
+<li><p>Three Month Fatality</p></li>
+<li><p>Forecasted GDP</p></li>
+<li><p>Positive Test Rate</p></li>
+<li><p>Development Index</p></li>
+<li><p>Community Mobility</p></li>
+<li><p>Flight Capacity</p></li>
+<li><p>Vaccine Coverage</p></li>
+<li><p>Universal Healthcare</p></li>
+<li><p>Lockdown Severity</p></li>
+<li><p>Routes</p></li>
+<li><p>One Month Cases</p></li>
+<li><p>Deaths</p></li>
+</ul>
+<p>I agree that three month fatality is a good factor, but forecasted GDP is not, in this case. For that reason, I’m moving the weight of that factor to 1.</p>
+<p>As well, current news about the Omicron Variant means that any in-person activity equals more opportunities for new cases. that being said, we are still very reliant on people working in-person for our shipping channels, so community mobility will be changed from a 9.9 to 6.6.</p>
+<p>Flight capacity is a measure of available seats on a plane, essentially (<span class="citation"><a href="#ref-bloombergMethodology" role="doc-biblioref">Rachel Tang</a> (<a href="#ref-bloombergMethodology" role="doc-biblioref">2021</a>)</span>). While important, I think it’s current weight is fine.</p>
+<p>Since vaccines are the current only form of medicine that one can take to prevent / reduce adverse effects of Covid, this factor is extremely important. Therefore, its weight is going from 8.79 to 50.</p>
+<p>As stated earlier, available routes is important to our supply-chain client. Having lots of flight routes open means that there is a higher chance that those shipping lines can come back to life. For that reason, the indicator weight is being changed from 0.032 to 2.3.</p>
+<p>While one month cases may initially be significant, we must remember the scope of the project. Since we may be suggesting our client to move operations, we should not make a decision based on a factor that changes so often. For this reason, I will not be touching the weight for one month cases.</p>
+<p>That would change our weights to:</p>
+<pre class="r"><code>modelWeights[&#39;gdp&#39;] = 1
+modelWeights[&#39;mobility&#39;] = 6.6
+modelWeights[&#39;vaccine.Coverage&#39;] = 50
+modelWeights[&#39;routes&#39;] = 2.3</code></pre>
+</div>
+<div id="now-we-apply-the-new-weights" class="section level2" number="3.6">
+<h2><span class="header-section-number">3.6</span> Now, we apply the new weights</h2>
+<pre class="r"><code>#I write the following expression so I can predict the models based off the linear regression model.
+#Line 223 could not have existed if not for a page I found online, which I will note after this chunk so I can add parentheticals.
+funt&lt;- resilience ~ offset(6.25*vaccine.Coverage) + lockdown.Severity + flight.Cap + offset(0.0139*routes) + one.Month.Cases + three.Month.Fatalities + deaths + test.Rate + offset(0.661*mobility) + offset(0.016904*gdp) + healthcare + dev.Index
+
+newModel = lm(funt, bloombergData, na.action = &#39;na.exclude&#39;)
+
+#I save the predictions to a new variable, I aded the na.action as to exclude the NA&#39;s as a result of the different data holes in Brazil, Iran, and Egypt. 
+newScores&lt;- predict.lm(
+  lm(funt, bloombergData, na.action = &#39;na.exclude&#39;)
+  )
+
+
+predictionData&lt;- bloombergData %&gt;%
+  mutate( scoreV2 = newScores) %&gt;%
+  relocate(scoreV2, .after = resilience) %&gt;%
+  arrange(desc(scoreV2)) %&gt;%
+  mutate(
+    newRanking = 1:53,
+    newChange = rank - newRanking
+  ) %&gt;%
+  relocate(newRanking, .after = rank) %&gt;%
+  relocate(newChange, .after = change)
+  
+
+rename(predictionData, bloombergChange = change)</code></pre>
+<pre><code>## # A tibble: 53 × 19
+##     rank newRanking bloombergChange newChange economy     resilience scoreV2
+##    &lt;dbl&gt;      &lt;int&gt;           &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;   &lt;dbl&gt;
+##  1     6          1               4         5 Norway            73.1    75.8
+##  2     4          2               1         2 Denmark           74.3    74.7
+##  3     2          3               0        -1 Spain             74.6    74.2
+##  4    12          4               6         8 Sweden            70      72.8
+##  5     5          5               1         0 Finland           74.2    72.6
+##  6     3          6               3        -3 U.A.E.            74.6    72.3
+##  7     9          7              -1         2 Switzerland       71.3    71.1
+##  8    10          8              -7         2 Netherlands       71.3    70.6
+##  9    16          9              13         7 Japan             68.4    70.5
+## 10    18         10               7         8 Portugal          67.6    70.4
+## # … with 43 more rows, and 12 more variables: vaccine.Coverage &lt;dbl&gt;,
+## #   lockdown.Severity &lt;dbl&gt;, flight.Cap &lt;dbl&gt;, routes &lt;dbl&gt;,
+## #   one.Month.Cases &lt;dbl&gt;, three.Month.Fatalities &lt;dbl&gt;, deaths &lt;dbl&gt;,
+## #   test.Rate &lt;dbl&gt;, mobility &lt;dbl&gt;, gdp &lt;dbl&gt;, healthcare &lt;dbl&gt;,
+## #   dev.Index &lt;dbl&gt;</code></pre>
+<pre class="r"><code>predictionData %&gt;%
+  select(newRanking, economy, resilience, scoreV2)</code></pre>
+<pre><code>## # A tibble: 53 × 4
+##    newRanking economy     resilience scoreV2
+##         &lt;int&gt; &lt;chr&gt;            &lt;dbl&gt;   &lt;dbl&gt;
+##  1          1 Norway            73.1    75.8
+##  2          2 Denmark           74.3    74.7
+##  3          3 Spain             74.6    74.2
+##  4          4 Sweden            70      72.8
+##  5          5 Finland           74.2    72.6
+##  6          6 U.A.E.            74.6    72.3
+##  7          7 Switzerland       71.3    71.1
+##  8          8 Netherlands       71.3    70.6
+##  9          9 Japan             68.4    70.5
+## 10         10 Portugal          67.6    70.4
+## # … with 43 more rows</code></pre>
+<p>On the variable “funt,” I was having extreme difficulty in finding out how to properly manually set coefficients to make predictions on the linear model. This was the best way I could find that does virtually the same thing. The website can be found in the references: <span class="citation"><a href="#ref-stacked" role="doc-biblioref">BenBarnes</a> (<a href="#ref-stacked" role="doc-biblioref">2012</a>)</span></p>
+</div>
+<div id="a-quick-analysis-on-the-results" class="section level2" number="3.7">
+<h2><span class="header-section-number">3.7</span> A Quick Analysis on the Results</h2>
+<p>We have a shift in the results! It seems that the top 5 are as follows:</p>
+<ol style="list-style-type: decimal">
+<li><p>Norway</p></li>
+<li><p>Denmark</p></li>
+<li><p>Spain</p></li>
+<li><p>Sweden</p></li>
+<li><p>Finland</p></li>
+</ol>
+<p>Is there much surprise? Something that can be said in this case is that some of the more Nordic countries have a society that pushed for a more strict Covid response, and said response was generally more accepted than countries like the USA, which is now in 26th place.</p>
+</div>
+<div id="how-do-we-make-a-threshold" class="section level2" number="3.8">
+<h2><span class="header-section-number">3.8</span> How do we make a threshold?’</h2>
+<p>To start, I wonder: how many of our countries ranked have a vaccine coverage over 50%? Here’s the code for that:</p>
+<pre class="r"><code>ggplot(
+  data = predictionData, aes(x = newRanking, y = vaccine.Coverage)) +
+  geom_point() + 
+  geom_smooth(method = &quot;lm&quot;) +
+  labs( title = &quot;Vaccine Coverage over the Bloomberg Ranked Countries&quot;,
+        x = &quot;Newly Found Rankings&quot;,
+        y = &quot;Vaccine Coverage&quot;
+        )</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+As we can see, vaccine coverage at 50% seems to land around the top 35 countries, which seems pretty reasonable.</p>
+<p>What happens if we were to plot 3-month Fatalities alongside that? Would we feel the same way?</p>
+<pre class="r"><code>ggplot(
+  data = predictionData, aes(x = newRanking)) +
+  
+  geom_point(aes(y = vaccine.Coverage, color = &#39;red&#39;), show.legend = FALSE) + 
+  geom_point(aes(y = mobility, color = &#39;green&#39;), show.legend = FALSE) + 
+  
+  geom_smooth(aes(y=vaccine.Coverage), method = &quot;lm&quot;) +
+  geom_smooth(aes(y= mobility), method = &quot;lm&quot;) +
+  
+  scale_y_continuous(
+    name = &#39;Vaccine Coverage / Mobility&#39;
+  )</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>Reds are Mobility, Greens are vaccine coverage.</p>
+<p>Mobility doesn’t seem to have nearly as much of an impact as I thought - it seems that there is a bit more variance as you get to the latter ranks, but that’s not of much concern.</p>
+<p>Overall, I think that, after looking at the spread of vaccine coverage, the acceptance threshold should be drawn at ranking # 35. So where does that leave us?</p>
+<pre class="r"><code>acceptedCountries&lt;- predictionData %&gt;%
+  filter(newRanking &lt; 36)
+
+rejectedCountries&lt;- predictionData %&gt;%
+  filter(newRanking &gt;= 36)
+
+clientRejections&lt;- rejectedCountries %&gt;%
+      filter(economy %in% clientCountries$Countries)
+
+clientRejections</code></pre>
+<pre><code>## # A tibble: 2 × 19
+##    rank newRanking change newChange economy  resilience scoreV2 vaccine.Coverage
+##   &lt;dbl&gt;      &lt;int&gt;  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt;            &lt;dbl&gt;
+## 1    50         44      1         6 Malaysia       48.9    51.6            0.756
+## 2    52         47      0         5 Vietnam        44      48.6            0.378
+## # … with 11 more variables: lockdown.Severity &lt;dbl&gt;, flight.Cap &lt;dbl&gt;,
+## #   routes &lt;dbl&gt;, one.Month.Cases &lt;dbl&gt;, three.Month.Fatalities &lt;dbl&gt;,
+## #   deaths &lt;dbl&gt;, test.Rate &lt;dbl&gt;, mobility &lt;dbl&gt;, gdp &lt;dbl&gt;, healthcare &lt;dbl&gt;,
+## #   dev.Index &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<div id="final-recommendations" class="section level1" number="4">
+<h1><span class="header-section-number">4</span> Final Recommendations</h1>
+<p>Based on the table above, I would recommend to my client that two of their operations, Malaysia and Vietnam, are at an insurance risk that is I would not advise to proceed with.</p>
+<p>The reasons for Malaysia are as follows:</p>
+<ul>
+<li><p>While the vaccination rate in Malaysia is high, the 3-Month Fatality rate in Malaysia as of now is 0.014, which is 10x higher than the first place spot, which is at 0.001%.</p></li>
+<li><p>As well, their mobility is at a -0.246, while the #1 spot is at a 0.063.</p></li>
+</ul>
+<p>As for Vietnam, their covid resilience was never too strong. Here are some of the toughest marks for them:</p>
+<ul>
+<li><p>Their vaccination rates are only at 37.8%. That alone poses a much larger risk.</p></li>
+<li><p>This would probably balance out if their fatality rate was equally low, but their actual fatality rate is at 0.023%.</p></li>
+</ul>
+<p>Once again, these factors are not the end-all, be-all solution to understanding insurance financial risk, but these may be a key way to quickly get an understanding of how Covid resiliency could help highlihgt attached risk.</p>
+<p>As well, I will end this secion with the list of “Accepted Countries” for the client. With a quick glance, you will be able to see recommended countries and their following data points. I would personally recommend countries with a high vaccination rate, low 3-month fatality rate, and possibly a higher to mid mobility. If possible, having a country with lax lockdowns would help with economic movements, but obviously comes with risks.</p>
+<p>I hope these recommendations have been helpful, please reach out with any questions.</p>
+<pre class="r"><code>acceptedCountries</code></pre>
+<pre><code>## # A tibble: 35 × 19
+##     rank newRanking change newChange economy resilience scoreV2 vaccine.Coverage
+##    &lt;dbl&gt;      &lt;int&gt;  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;        &lt;dbl&gt;   &lt;dbl&gt;            &lt;dbl&gt;
+##  1     6          1      4         5 Norway        73.1    75.8            0.739
+##  2     4          2      1         2 Denmark       74.3    74.7            0.761
+##  3     2          3      0        -1 Spain         74.6    74.2            0.767
+##  4    12          4      6         8 Sweden        70      72.8            0.694
+##  5     5          5      1         0 Finland       74.2    72.6            0.726
+##  6     3          6      3        -3 U.A.E.        74.6    72.3            0.973
+##  7     9          7     -1         2 Switze…       71.3    71.1            0.642
+##  8    10          8     -7         2 Nether…       71.3    70.6            0.693
+##  9    16          9     13         7 Japan         68.4    70.5            0.733
+## 10    18         10      7         8 Portug…       67.6    70.4            0.786
+## # … with 25 more rows, and 11 more variables: lockdown.Severity &lt;dbl&gt;,
+## #   flight.Cap &lt;dbl&gt;, routes &lt;dbl&gt;, one.Month.Cases &lt;dbl&gt;,
+## #   three.Month.Fatalities &lt;dbl&gt;, deaths &lt;dbl&gt;, test.Rate &lt;dbl&gt;,
+## #   mobility &lt;dbl&gt;, gdp &lt;dbl&gt;, healthcare &lt;dbl&gt;, dev.Index &lt;dbl&gt;</code></pre>
+</div>
+<div id="appendix" class="section level1" number="5">
+<h1><span class="header-section-number">5</span> Appendix</h1>
+<p>In this section, we will go over various topics that, while are not necessarily useful for the paper itself, offer useful information for further context.</p>
+<p>They helps us answer questions like:</p>
+<ul>
+<li><p>Why did you not use a different model?</p></li>
+<li><p>Where did the data come from?</p></li>
+<li><p>How did you aggregate the data?</p></li>
+</ul>
+<p>(as a note, some of the above questions came from the Bloomberg article) <span class="citation"><a href="#ref-bloombergMethodology" role="doc-biblioref">Rachel Tang</a> (<a href="#ref-bloombergMethodology" role="doc-biblioref">2021</a>)</span></p>
+<div id="understanding-the-model" class="section level2" number="5.1">
+<h2><span class="header-section-number">5.1</span> Understanding the Model</h2>
+<p>The initial thought objective of this paper was to re-create the Bloomberg Covid Resiliency Index that was given in the Dataset. After visiting their methodology page (<span class="citation"><a href="#ref-bloombergMethodology" role="doc-biblioref">Rachel Tang</a> (<a href="#ref-bloombergMethodology" role="doc-biblioref">2021</a>)</span>), I found some issues.</p>
+<div id="the-first-big-one-came-from-the-paragraph-titled-how-is-the-ranking-aggregated" class="section level3" number="5.1.1">
+<h3><span class="header-section-number">5.1.1</span> the first big one came from the paragraph titled: “How is the Ranking Aggregated?”</h3>
+<p>On pagerduty, data aggregation is defined as:</p>
+<blockquote>
+<p>“data aggregation is the process of compiling typically [large] amounts of information from a given database and organizing it into a more consumable and comprehensive medium”
+(<span class="citation"><a href="#ref-dataAggregationDef" role="doc-biblioref"><span>“What Is Data Aggregation?”</span></a> (<a href="#ref-dataAggregationDef" role="doc-biblioref">2021</a>)</span>).</p>
+</blockquote>
+<p>Bloomberg says that they aggregate their data using the “Max-Min” method (<span class="citation"><a href="#ref-bloombergMethodology" role="doc-biblioref">Rachel Tang</a> (<a href="#ref-bloombergMethodology" role="doc-biblioref">2021</a>)</span>) in order to normalize each of the factors.</p>
+<p>This isn’t such a problem, up until we try to perform this action. Let’s see what happens</p>
+<div id="first-we-define-the-max-min-method-as-defined-by-the-un" class="section level4" number="5.1.1.1">
+<h4><span class="header-section-number">5.1.1.1</span> first, we define the max-min method as defined by the UN:</h4>
+<blockquote>
+<p>“The basic formula for converting an indicator value (V) into an index score (I) is:</p>
+</blockquote>
+<p><span class="math display">\[
+I = 100 * \frac{V-minValue}{maxValue - minValue}
+\]</span>
+(this information was found at the <span class="citation"><a href="#ref-UN" role="doc-biblioref">UN</a> (<a href="#ref-UN" role="doc-biblioref">2021</a>)</span> source)</p>
+<p>That sounds great, so let’s try and apply this to our data set.
+We will do the following:</p>
+<ul>
+<li><p>For each column, mutate it using Dplyr to apply the above equation</p></li>
+<li><p>delete the old column. Out with the old, in the with the New</p></li>
+<li><p>create a new column which is the average of the row</p></li>
+</ul>
+<p>In theory, this should give us the covid Resiliency score, right?</p>
+</div>
+<div id="applying-the-model" class="section level4" number="5.1.1.2">
+<h4><span class="header-section-number">5.1.1.2</span> Applying the Model</h4>
+<pre class="r"><code>scoreDF &lt;- bloombergData %&gt;%
+  select(resilience, vaccine.Coverage, lockdown.Severity, flight.Cap, routes, one.Month.Cases, three.Month.Fatalities, deaths, test.Rate, mobility, gdp, healthcare, dev.Index) %&gt;%
+  mutate(
+    vaccineCoverageScore = 100 * ( (vaccine.Coverage - min(vaccine.Coverage)) / ( max(vaccine.Coverage) - min(vaccine.Coverage))),
+    
+    lockdownSeverityScore = 100 * ( (lockdown.Severity - min(lockdown.Severity)) / ( max(lockdown.Severity) - min(lockdown.Severity))),
+    
+    flightCapScore = 100 * ( (flight.Cap - min(flight.Cap)) / ( max(flight.Cap) - min(flight.Cap))),
+    
+    routeScore = 100 * ( (routes - min(routes)) / ( max(routes) - min(routes))),
+    
+    oneMonthScore = 100 * ( (one.Month.Cases - min(one.Month.Cases)) / ( max(one.Month.Cases) - min(one.Month.Cases))),
+    
+    threeMonthScore = 100 * ( (three.Month.Fatalities - min(three.Month.Fatalities)) / ( max(three.Month.Fatalities) - min(three.Month.Fatalities))),
+    
+    deathScore = 100 * ( (deaths - min(deaths)) / ( max(deaths) - min(deaths))),
+    
+    testRateScore = 100 * ( (test.Rate - min(test.Rate, na.rm = TRUE)) / ( max(test.Rate, na.rm = TRUE) - min(test.Rate, na.rm = TRUE))),
+    
+    mobilityScore = 100 * ( (mobility - min(mobility, na.rm = TRUE)) / ( max(mobility, na.rm = TRUE) - min(mobility, na.rm = TRUE))),
+    
+    gdpScore = 100 * ( (gdp - min(gdp)) / ( max(gdp) - min(gdp))),
+    
+    healthcareScore = 100 * ( (healthcare - min(healthcare, na.rm = TRUE)) / ( max(healthcare, na.rm = TRUE) - min(healthcare, na.rm = TRUE))),
+    
+    devIndexScore = 100 * ( (dev.Index - min(dev.Index)) / ( max(dev.Index) - min(dev.Index))),
+    
+    .keep = &#39;none&#39;
+  )
+
+scoreDF$newScores&lt;- rowMeans(scoreDF)
+
+scoreDF &lt;- scoreDF %&gt;%
+  relocate(newScores, .before = vaccineCoverageScore)
+
+(review &lt;- data.frame(bloombergData$resilience, scoreDF$newScores))</code></pre>
+<pre><code>##    bloombergData.resilience scoreDF.newScores
+## 1                      75.1          57.56012
+## 2                      74.6          48.48324
+## 3                      74.6          39.92292
+## 4                      74.3          39.92298
+## 5                      74.2          41.27186
+## 6                      73.1          38.75924
+## 7                      71.5          51.57188
+## 8                      71.4          49.42164
+## 9                      71.3          48.13190
+## 10                     71.3          49.69946
+## 11                     70.6          50.36157
+## 12                     70.0          37.09316
+## 13                     69.1          47.71770
+## 14                     68.6          37.54273
+## 15                     68.5          42.30919
+## 16                     68.4          36.21398
+## 17                     67.8          48.14120
+## 18                     67.6          41.54972
+## 19                     67.5          53.90250
+## 20                     66.9          44.05337
+## 21                     66.6                NA
+## 22                     66.6          50.82570
+## 23                     66.3          50.53220
+## 24                     65.8          46.45344
+## 25                     65.6          54.08489
+## 26                     65.3          54.41945
+## 27                     65.3          49.72655
+## 28                     65.2          38.89459
+## 29                     62.4          40.58478
+## 30                     62.2          33.56727
+## 31                     61.9                NA
+## 32                     61.5          37.08592
+## 33                     61.1          39.77720
+## 34                     59.5                NA
+## 35                     59.4          31.55016
+## 36                     58.7          25.12770
+## 37                     57.6                NA
+## 38                     57.6          36.73483
+## 39                     57.5          44.88017
+## 40                     57.5          37.56746
+## 41                     57.5          52.21465
+## 42                     57.3          41.63979
+## 43                     56.9          58.03754
+## 44                     56.2          29.54218
+## 45                     55.7          27.32326
+## 46                     54.8          43.53998
+## 47                     53.7          36.90324
+## 48                     50.5          32.22230
+## 49                     49.5          61.34365
+## 50                     48.9          33.80326
+## 51                     46.8          38.16021
+## 52                     44.0          24.88274
+## 53                     40.5          28.86580</code></pre>
+</div>
+<div id="what-did-we-find-out" class="section level4" number="5.1.1.3">
+<h4><span class="header-section-number">5.1.1.3</span> What did we Find out?</h4>
+<p>So, if we look at the resilience Score we came up with, they are not consistent with Bloomberg’s resilience score at all.</p>
+<p>The first natural question is: “Maybe there’s a weight attached to each of the indicators?” That would be a good idea, until you read this section in the paragraph in question:</p>
+<blockquote>
+<p>“The final Bloomberg Resilience Score is the average of a place’s performance across the 12 indicators, equally weighted.”</p>
+</blockquote>
+<p>It is possible that they did a form of scaling outside just this formula, but they did not specify.</p>
+<p>This miscalculation leaves us with a halt in modeling capabilities. If we cannot replicate the current resilience score, then we cannot effectively weigh our variables again, which will make our final recommendation not only skewed, but flat-out statistically incorrect.</p>
+<p>This is why I looked to a new dataset, especially the one from <span class="citation"><a href="#ref-cartesianFaith" role="doc-biblioref">Rowe</a> (<a href="#ref-cartesianFaith" role="doc-biblioref">2021</a>)</span></p>
+</div>
+</div>
+</div>
+<div id="why-not-another-dataset" class="section level2" number="5.2">
+<h2><span class="header-section-number">5.2</span> Why not another dataset?</h2>
+<p>There were a few options, but for this one I liked it’s initial simplicity in regards to business decisions. Something that has fascinated me is how many wildly expensive business decisions that have been made on the back of a small bar napkin and over a quick handshake. Millions of dollars have been passed back and forth based on minimal detail from highly trustworthy sources. For instance, the insurance industry. There have been multi-million dollar deals for insurance packages that have been completed over two people having a small conversation. Why is that?</p>
+<p>That is because of trust.</p>
+<div id="trust---a-note" class="section level3" number="5.2.1">
+<h3><span class="header-section-number">5.2.1</span> Trust - a note</h3>
+<p>Trust is something that is changing very quickly - I would say that it is the main driver behind the creation of Web3. For so long, trust has worked like this:</p>
+<pre class="r"><code>library(dagitty)
+dag_trust &lt;- dagitty(&quot;dag{
+  party1 &lt;- trust -&gt; party2 
+  party1 -&gt; trust &lt;- party2
+  decisions &lt;- party2
+  }&quot;
+)
+coordinates(dag_trust) &lt;- list(
+  x=c(party1=0,party2=2,trust=1,decisions=2),
+  y=c(party1=1,party2=1,trust=0,decisions=1.5) 
+  )
+plot(dag_trust)</code></pre>
+<p><img src="index_files/figure-html/load-packages-1.png" width="672" /></p>
+<p>The point of this diagram is to say that, for party 1 to communicate with a party 2 that makes business decision, there must be trust. Trust is built from the following aspects:</p>
+<ul>
+<li><p>Previous relationship</p></li>
+<li><p>Brand Recognition</p></li>
+<li><p>Word of Mouth</p></li>
+</ul>
+<p>For many as of now, we trust certain brands with our money - we buy a pair of shoes from Nike over Clarks because Nike has an established brand that we trust due to it’s extensive word of mouth and recognition.</p>
+</div>
+<div id="bringing-trust-to-bloomberg" class="section level3" number="5.2.2">
+<h3><span class="header-section-number">5.2.2</span> Bringing trust to Bloomberg</h3>
+<p>If we look at Bloomberg, we trust what they put out in terms of news, data, etc., is trusted because of the same reasons above. So when someone is asked at a company:</p>
+<blockquote>
+<p>which of our factories are at a high risk of workers comp due to Covid?</p>
+</blockquote>
+<p>I imagine that the employee may look to the internet for answers. This resiliency score, if verified, would be a great way to give an answer to your boss.</p>
+</div>
+</div>
+<div id="what-factors-are-considered-when-discussing-claims-management" class="section level2" number="5.3">
+<h2><span class="header-section-number">5.3</span> What factors are considered when discussing claims Management?</h2>
+<p>The short version is: it anything that could create a claim.</p>
+<p>Something that makes global claims management so tricky is that, for the most part, insurance packages are done in accordance to country laws, which vary greatly in certain areas, such as workers compensation.</p>
+<p>For those who are unfamiliar, you usually are elligible for workers compensation if you get injured on the job due to something out of yoru control. So, if you purposefully drive the forklift into the shelf, you cannot claim workers comp. But if your company did not maintain the forklift and a sticky accelerator caused the accident, then you would get workers comp.</p>
+<p>The tricky part comes in when we discuss workers comp in reletation to sicknesses. On the National Conference of State Legislatures, they had this to say about illnesses and workers compensation:</p>
+<blockquote>
+<p>“Generally, workers’ compensation does not cover routine community-spread illnesses like a cold or the flu because they usually cannot be directly tied to the workplace. Some states have made exceptions for certain workers who develop chronic illnesses, like cancer, resulting from repeated exposure to harmful materials and environments.”</p>
+</blockquote>
+<p><span class="citation"><a href="#ref-NCSL" role="doc-biblioref">Cunningham</a> (<a href="#ref-NCSL" role="doc-biblioref">2020</a>)</span></p>
+<p>The natural response to this is that people can get Covid as a response from exposure to the virus at their job, similarly to someone becoming ill from “exposure to harmful materials” <span class="citation"><a href="#ref-NCSL" role="doc-biblioref">Cunningham</a> (<a href="#ref-NCSL" role="doc-biblioref">2020</a>)</span>. That being said, I think the distinction between Covid-19 and other viruses, like the Flu, is that there are common medicines that make recovery easy, while there are no current medicines other than the vaccine to protect against Covid.</p>
+<p>That being said, this is not to say that workers comp covers everything regarding Covid. Workers compensation usually comes in the form of:</p>
+<ul>
+<li><p>The cost of Hospitalization</p></li>
+<li><p>The cost of Death insurance</p></li>
+</ul>
+<p>That being said, in the United States alone, the only two states that require death benefits from Covid are New York and California (<span class="citation"><a href="#ref-NCSL" role="doc-biblioref">Cunningham</a> (<a href="#ref-NCSL" role="doc-biblioref">2020</a>)</span>). That being said, COVID deaths are still a good measurement of risk for insurance assessment. If someone were to die from Covid, this means that they were likely in a hospital beforehand, which raises the chance that there will need to be a claim. With that knowledge, we can say that, with a higher fatality rate, there is a higher risk of claims.</p>
+<p>In this paper, hospitalization data would be wonderful, but finding hospitalization rates that fit with the data for the same countries as is on this ranking list is difficult. For that reason, I will apply a greater weight on fatalities.</p>
+</div>
+<div id="adding-new-data" class="section level2" number="5.4">
+<h2><span class="header-section-number">5.4</span> Adding new Data?</h2>
+<p>In this paper, the insurance element can always be expanded upon. Due to personal time restraints, we were unable to gather new datapoints that would help add onto our own Covid Resiliency Rankings.</p>
+<p>One of the key difficult points to this is the interactions between global claims packages and different foreign rules and regulations.</p>
+<p>Another is how one would calculate average claims dollars spent per country.</p>
+<p>An initial thought would be to do it by company in these countries <span class="citation"><a href="#ref-reinsurance" role="doc-biblioref">Ltd.</a> (<a href="#ref-reinsurance" role="doc-biblioref">June</a>)</span></p>
+<p>By seeing general claims from companies, one could get a sense of monies lost per company, then attribute those losses to the company’s headquartered country.</p>
+<p>Afterwards you would then ad this as a new variable for each of the 52 countries, which makes it easy to add the variable into the regression.</p>
+<p>This factor would carry a large weight since Insurance companies rely heavily on historical data to make future predictions on Insurance Risk Management.</p>
+</div>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1>References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-stacked" class="csl-entry">
+BenBarnes. 2012. <span>“Set One or More of Coefficients to a Specific Integer.”</span> 2012. <a href="https://stackoverflow.com/questions/10027664/set-one-or-more-of-coefficients-to-a-specific-integer">https://stackoverflow.com/questions/10027664/set-one-or-more-of-coefficients-to-a-specific-integer</a>.
+</div>
+<div id="ref-NCSL" class="csl-entry">
+Cunningham, Josh. 2020. <span>“COVID-19: Workers’ Compensation.”</span> 2020. <a href="https://www.ncsl.org/research/labor-and-employment/covid-19-workers-compensation.aspx">https://www.ncsl.org/research/labor-and-employment/covid-19-workers-compensation.aspx</a>.
+</div>
+<div id="ref-reinsurance" class="csl-entry">
+Ltd., Steve Evants. June. <span>“COVID-19 Loss Reports and Reserves Reported by Insurance or Reinsurance Companies.”</span> <a href="https://www.reinsurancene.ws/covid-19-insurer-reinsurer-loss-reports/">https://www.reinsurancene.ws/covid-19-insurer-reinsurer-loss-reports/</a>.
+</div>
+<div id="ref-bloombergMethodology" class="csl-entry">
+Rachel Tang, Felix Tam. 2021. <span>“Methodology: Inside Bloomberg’s Covid Resiliency Ranking.”</span> <em>Bloomberg Business</em>. <a href="https://www.bloomberg.com/news/articles/2020-11-24/inside-bloomberg-s-covid-resilience-ranking">https://www.bloomberg.com/news/articles/2020-11-24/inside-bloomberg-s-covid-resilience-ranking</a>.
+</div>
+<div id="ref-cartesianFaith" class="csl-entry">
+Rowe, Bian Lee Yung. 2021. <span>“Lies, Damned Lies, and Rankings: The Problem with Bloomberg’s COVID Resilience Ranking.”</span> 2021. <a href="https://cartesianfaith.com/2021/11/08/lies-damned-lies-and-rankings-the-problem-with-bloombergs-covid-resilience-ranking/">https://cartesianfaith.com/2021/11/08/lies-damned-lies-and-rankings-the-problem-with-bloombergs-covid-resilience-ranking/</a>.
+</div>
+<div id="ref-UN" class="csl-entry">
+UN. 2021. <span>“Max-Min Procedure to Convert Indicators into Indices.”</span> 2021. <a href="https://www.un.org/development/desa/dpad/wp-content/uploads/sites/45/max-min.pdf">https://www.un.org/development/desa/dpad/wp-content/uploads/sites/45/max-min.pdf</a>.
+</div>
+<div id="ref-dataAggregationDef" class="csl-entry">
+<span>“What Is Data Aggregation?”</span> 2021. <a href="https://www.pagerduty.com/resources/learn/what-is-data-aggregation/">https://www.pagerduty.com/resources/learn/what-is-data-aggregation/</a>.
+</div>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+---
+title: "About This Website"
+---
+
+My name is Alexander. If you are on this page, you're looking to learn more about the project website. Welcome!
+
+# The Purpose
+
+The purpose of this website is a final project for an advanced data analysis class which is the culmination of a 7 week course
+
+
+# Relevant Experience
+
+For the project, we were given ultimate freedom to choose what our scope was. My personal background was in the following:
+
+- Data Analysis
+
+- Risk Management Information Systems
+
+- Experience in the Insurance World
+
+- Some knowledge on supply chain management
+
+
+In my life, I am a Graduate Assistant for the School of Business of Manhattan College. In that position, I am a part of a group that helps create a competition called the Business Analytics Competition at Manhattan College, AKA the BAC at MC.
+This was a dataset that we went over and discussed in great detail - I saw a greater desire to dig into this particular dataset, which is why I ran with it. Further questions on the dataset can be found in the appendices. 
+
+# Contact Me
+
+To contact me, I would prefer email:
+
+> anieves02@manhatan.edu
+
+or, if it is past the year 2022, my personal email:
+
+> alexanderenieves@gmail.com
+
+I always welcome questions. you can also see my history via 
+[LinkedIn](https://www.linkedin.com/in/alexanderenieves/)
+
+
+
+
+

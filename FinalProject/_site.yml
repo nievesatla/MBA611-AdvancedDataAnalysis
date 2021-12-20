@@ -1,0 +1,8 @@
+name: "my-website"
+navbar:
+  title: "Trusting Bloomberg for Insurance Decisions"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html

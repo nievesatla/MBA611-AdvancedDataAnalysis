@@ -1,0 +1,556 @@
+---
+title: "Using Covid Resiliency Scores to make Valuable Supply Chain Insurance Decisions"
+author:
+  - name: Alexander Nieves
+    email: anieves02@manhattan.edu
+    department: The O'Malley School of Business
+    affiliation: Manhattan College
+    footnote: 1
+address:
+  - code: Manhattan College
+    address: O'Malley School of Business, Riverdale, NY 10471
+footnote:
+  - code: 1
+    text: "Corresponding Author"
+abstract: |
+  A database is introduced, where a case study is finally proposed. Moving foward creates a necessity to verify, modify, then propose a final solution. 
+keywords: Project Report; Workflow; Exploratory Data Analysis; Causal Inference; Probabilistic Reasoning; WAIC; PSIS; Counterfactual Inference; Project Management
+date: "`r Sys.Date()`"
+bibliography: paper.bib
+biblio-style: apalike
+link-citations: yes
+#linenumbers: true
+numbersections: true
+longtable: true
+output: 
+  bookdown::html_document2:
+    fig_caption: yes
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+library(rethinking)
+library(tidyverse)
+library(GGally)
+library(readxl)
+library(dplyr)
+library(rstan)
+library(StanHeaders)
+library(ggplot2)
+library(knitr)
+```
+# Base Introduction
+
+Omicron is here - how should insurance companies respond?
+
+- Our client, a supply chain company, is worried about the new variant
+
+- Objective: Offer a recommendation on an acceptance threshold based on a COVID resiliency Ranking given by Bloomberg
+
+- Organization of the report: Manhattan College
+
+# To begin, some Context
+
+
+My name is Alex, and I am acting as a junior consultant for XYZ Insurance Consulting.
+
+The company operates internationally in several countries.Recent news about the Omicron Covid variant is giving my client worries about claims management regarding covering Covid Hospitalizations (workers Compensation overall). 
+Bloomberg recently made a list, ranking countries in resiliency against Covid-19. If this ranking was statistically reinforced by our data guys, we could make a recommendation to our client that any operation existing in any country under a certain ranking threshold should highly consider moving to a different country. To do this, our firm would have to:
+
+- Take a deeper dive into the methodology of the rankings
+
+- Understand which variables go into producing said rankings
+
+- Make any modifications that we may deem necessary
+
+- Either accept or reject the current rankings
+
+Finally, we would create a threshold for the rankings, then give this to our client.
+
+## A quick note Before we Begin: Appendices and Sensitivity; a possible Trigger Warning
+The following paper had some initial quirks that, once wrestles with, gave us the means to produce viable results. In the latter part of the paper exists an appendix, please visit that to learn more about how I got to the final model used.
+
+As well, I must say that, due to the nature of the topic, I will be discussing fatalities of Covid 19. When combined with topics of Insurance, some may feel a sense of morbidity or apathy. I want to stress that, above all, the true horror of the pandemic are the brothers and sisters we've lost to the virus. Every life is sacred, but when discussing insurance, there needs to be a line. 
+
+For the sense of analysis, I will be brief when discussing topics such as fatalities, but in the Appendix I may go into further detail. 
+
+# That being said, let us continue into the meat and potatoes
+
+In this section, we will go over the following points:
+
+- First, we will call the case study variables, such as countries, data sets, etc.
+
+- We will then re-create the bloomberg Resiliency scores
+
+- We will then quickly analyze the currents weights, then re-adjust those weights using applicable logic
+
+- We will re-calculate the index, taking a moment to analyze the new results
+
+- Finally, we will create a threshhold and make a client recommendation
+
+## Now, to call the list of countries our client has
+
+```{r}
+clientCountries<- data.frame("Countries" = c("U.S.", "Mainland China","Japan", "Malaysia", "Vietnam", "Germany","Ireland" ))
+
+```
+
+
+## Thank you, Bloomberg, for this data:
+
+
+```{r}
+df<- read_excel("Data/Bloomberg Covid Resilience Ranking.xlsx")
+(head(df))
+```
+
+For analysis purposes, we will change the column names using Dplyr:
+```{r}
+bloombergData = rename(df, 
+       rank = RANK,
+       change = CHANGE,
+       economy = ECONOMY,
+       resilience = 'BLOOMBERG RESILIENCE SCORE',
+       vaccine.Coverage = 'PEOPLE COVERED BY VACCINES',
+       lockdown.Severity = 'LOCKDOWN SEVERITY',
+       flight.Cap = 'FLIGHT CAPACITY',
+       routes = 'VACCINATED TRAVEL ROUTES',
+       one.Month.Cases = '1-MONTH CASES PER 100,000',
+       three.Month.Fatalities = '3-MONTH CASE FATALITY RATE',
+       deaths = 'TOTAL DEATHS PER 1 MILLION',
+       test.Rate = 'POSITIVE TEST RATE',
+       mobility = 'COMMUNITY MOBILITY',
+       gdp = '2021 GDP GROWTH FORECAST',
+       healthcare = 'UNIVERSAL HEALTHCARE COVERAGE',
+       dev.Index = 'HUMAN DEVELOPMENT INDEX'
+       )
+(head(bloombergData))
+
+```
+
+## Now we need to re-create Bloomberg's Data
+
+Brian Lee Yung Rowe made a skeptical analysis that was done on the bloomberg rankings. I must say that his article came out before the methodology (@bloombergMethodology) article was recently edited. Judging by the tone of Rowe's article, it sems that the piece was written before the methodology was released. 
+
+That being said, Rowe was great at assuming firsthand that there may be weights attached to a model used if there was a linear regression, so we begin with that.
+
+This code chunk is also mostly taken from Rowe's article. (@cartesianFaith)
+
+```{r}
+
+model<- lm(resilience ~ vaccine.Coverage + lockdown.Severity + flight.Cap + routes + one.Month.Cases + three.Month.Fatalities + deaths + test.Rate + mobility + gdp + healthcare + dev.Index, bloombergData)
+
+
+summary(model)
+
+max(model$coefficients)
+min(model$coefficients)
+
+```
+
+## Analyzing results
+
+When we take a look at the results, doing a multi-linear regression gets us quite close to the real deal. That's a good start, at least.
+
+That being said, certain variance in weights is vast. The maximum coeficient was forecasted GDP at a weight of 59.1566, and the min was three month fatality with a weight of -108.25. This works when rating countries based on economic factors (especially considering that the rankings came from Bloomberg), but when we consider factors like insurance claims, something like the amount of vaccinated plane routes is more important than a country's GDP. 
+
+As well, there is a distinct difference between a factor that would be more impactful for busienss decisions vs. insurance risk. 
+
+For more info on consideration on importance of certain factors over others in the insurance world, please reference the appendix. 
+
+## Adjusting the Weights is the next step
+
+If we adjust the rankings, we may see differences in the rankings themselves, which would lead us to either accept or reject the current rankings. 
+
+To do this, conceptualize the weights:
+
+```{r}
+modelWeights = model$coefficients
+
+```
+
+Here are the factors in descending order of weight:
+
+- Three Month Fatality
+
+- Forecasted GDP
+
+- Positive Test Rate
+
+- Development Index
+
+- Community Mobility
+
+- Flight Capacity
+
+- Vaccine Coverage
+
+- Universal Healthcare
+
+- Lockdown Severity
+
+- Routes
+
+- One Month Cases
+
+- Deaths
+
+I agree that three month fatality is a good factor, but forecasted GDP is not, in this case. For that reason, I'm moving the weight of that factor to 1.
+
+As well, current news about the Omicron Variant means that any in-person activity equals more opportunities for new cases. that being said, we are still very reliant on people working in-person for our shipping channels, so community mobility will be changed from a 9.9 to 6.6.
+
+Flight capacity is a measure of available seats on a plane, essentially (@bloombergMethodology). While important, I think it's current weight is fine. 
+
+Since vaccines are the current only form of medicine that one can take to prevent / reduce adverse effects of Covid, this factor is extremely important. Therefore, its weight is going from 8.79 to 50.
+
+As stated earlier, available routes is important to our supply-chain client. Having lots of flight routes open means that there is a higher chance that those shipping lines can come back to life. For that reason, the indicator weight is being changed from 0.032 to 2.3.
+
+While one month cases may initially be significant, we must remember the scope of the project. Since we may be suggesting our client to move operations, we should not make a decision based on a factor that changes so often. For this reason, I will not be touching the weight for one month cases.
+
+That would change our weights to:
+
+```{r}
+modelWeights['gdp'] = 1
+modelWeights['mobility'] = 6.6
+modelWeights['vaccine.Coverage'] = 50
+modelWeights['routes'] = 2.3
+```
+
+## Now, we apply the new weights
+
+```{r}
+#I write the following expression so I can predict the models based off the linear regression model.
+#Line 223 could not have existed if not for a page I found online, which I will note after this chunk so I can add parentheticals.
+funt<- resilience ~ offset(6.25*vaccine.Coverage) + lockdown.Severity + flight.Cap + offset(0.0139*routes) + one.Month.Cases + three.Month.Fatalities + deaths + test.Rate + offset(0.661*mobility) + offset(0.016904*gdp) + healthcare + dev.Index
+
+newModel = lm(funt, bloombergData, na.action = 'na.exclude')
+
+#I save the predictions to a new variable, I aded the na.action as to exclude the NA's as a result of the different data holes in Brazil, Iran, and Egypt. 
+newScores<- predict.lm(
+  lm(funt, bloombergData, na.action = 'na.exclude')
+  )
+
+
+predictionData<- bloombergData %>%
+  mutate( scoreV2 = newScores) %>%
+  relocate(scoreV2, .after = resilience) %>%
+  arrange(desc(scoreV2)) %>%
+  mutate(
+    newRanking = 1:53,
+    newChange = rank - newRanking
+  ) %>%
+  relocate(newRanking, .after = rank) %>%
+  relocate(newChange, .after = change)
+  
+
+rename(predictionData, bloombergChange = change)
+
+predictionData %>%
+  select(newRanking, economy, resilience, scoreV2)
+
+```
+
+On the variable "funt," I was having extreme difficulty in finding out how to properly manually set coefficients to make predictions on the linear model. This was the best way I could find that does virtually the same thing. The website can be found in the references: @stacked
+
+
+## A Quick Analysis on the Results
+
+We have a shift in the results! It seems that the top 5 are as follows:
+
+1. Norway
+
+2. Denmark
+
+3. Spain
+
+4. Sweden
+
+5. Finland
+
+Is there much surprise? Something that can be said in this case is that some of the more Nordic countries have a society that pushed for a more strict Covid response, and said response was generally more accepted than countries like the USA, which is now in 26th place. 
+
+
+## How do we make a threshold?'
+
+To start, I wonder: how many of our countries ranked have a vaccine coverage over 50%? Here's the code for that:
+
+```{r}
+
+ggplot(
+  data = predictionData, aes(x = newRanking, y = vaccine.Coverage)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  labs( title = "Vaccine Coverage over the Bloomberg Ranked Countries",
+        x = "Newly Found Rankings",
+        y = "Vaccine Coverage"
+        )
+
+```
+As we can see, vaccine coverage at 50% seems to land around the top 35 countries, which seems pretty reasonable.
+
+What happens if we were to plot 3-month Fatalities alongside that? Would we feel the same way?
+
+```{r}
+ggplot(
+  data = predictionData, aes(x = newRanking)) +
+  
+  geom_point(aes(y = vaccine.Coverage, color = 'red'), show.legend = FALSE) + 
+  geom_point(aes(y = mobility, color = 'green'), show.legend = FALSE) + 
+  
+  geom_smooth(aes(y=vaccine.Coverage), method = "lm") +
+  geom_smooth(aes(y= mobility), method = "lm") +
+  
+  scale_y_continuous(
+    name = 'Vaccine Coverage / Mobility'
+  )
+  
+
+
+
+```
+
+Reds are Mobility, Greens are vaccine coverage.
+
+Mobility doesn't seem to have nearly as much of an impact as I thought - it seems that there is a bit more variance as you get to the latter ranks, but that's not of much concern.
+
+Overall, I think that, after looking at the spread of vaccine coverage, the acceptance threshold should be drawn at ranking # 35. So where does that leave us?
+
+```{r}
+
+acceptedCountries<- predictionData %>%
+  filter(newRanking < 36)
+
+rejectedCountries<- predictionData %>%
+  filter(newRanking >= 36)
+
+clientRejections<- rejectedCountries %>%
+      filter(economy %in% clientCountries$Countries)
+
+clientRejections
+
+```
+
+# Final Recommendations
+
+Based on the table above, I would recommend to my client that two of their operations, Malaysia and Vietnam, are at an insurance risk that is I would not advise to proceed with. 
+
+The reasons for Malaysia are as follows:
+
+- While the vaccination rate in Malaysia is high, the 3-Month Fatality rate in Malaysia as of now is 0.014, which is 10x higher than the first place spot, which is at 0.001%.
+
+- As well, their mobility is at a -0.246, while the #1 spot is at a 0.063.
+
+As for Vietnam, their covid resilience was never too strong. Here are some of the toughest marks for them:
+
+- Their vaccination rates are only at 37.8%. That alone poses a much larger risk. 
+
+- This would probably balance out if their fatality rate was equally low, but their actual fatality rate is at 0.023%. 
+
+Once again, these factors are not the end-all, be-all solution to understanding insurance financial risk, but these may be a key way to quickly get an understanding of how Covid resiliency could help highlihgt attached risk. 
+
+As well, I will end this secion with the list of "Accepted Countries" for the client. With a quick glance, you will be able to see recommended countries and their following data points. I would personally recommend countries with a high vaccination rate, low 3-month fatality rate, and possibly a higher to mid mobility. If possible, having a country with lax lockdowns would help with economic movements, but obviously comes with risks. 
+
+I hope these recommendations have been helpful, please reach out with any questions.
+
+```{r}
+acceptedCountries
+```
+
+# Appendix
+
+In this section, we will go over various topics that, while are not necessarily useful for the paper itself, offer useful information for further context.
+
+They helps us answer questions like:
+
+- Why did you not use a different model?
+ 
+- Where did the data come from?
+
+- How did you aggregate the data?
+
+(as a note, some of the above questions came from the Bloomberg article) @bloombergMethodology
+
+## Understanding the Model
+
+The initial thought objective of this paper was to re-create the Bloomberg Covid Resiliency Index that was given in the Dataset. After visiting their methodology page (@bloombergMethodology), I found some issues.
+
+### the first big one came from the paragraph titled: "How is the Ranking Aggregated?"
+On pagerduty, data aggregation is defined as: 
+
+> "data aggregation is the process of compiling typically [large] amounts of information from a given database and organizing it into a more consumable and comprehensive medium" 
+(@dataAggregationDef). 
+
+Bloomberg says that they aggregate their data using the "Max-Min" method (@bloombergMethodology) in order to normalize each of the factors. 
+
+This isn't such a problem, up until we try to perform this action. Let's see what happens
+
+#### first, we define the max-min method as defined by the UN:
+
+> "The basic formula for converting an indicator value (V) into an index score (I) is:
+
+$$
+I = 100 * \frac{V-minValue}{maxValue - minValue}
+$$
+(this information was found at the @UN source)
+
+That sounds great, so let's try and apply this to our data set. 
+We will do the following:
+
+- For each column, mutate it using Dplyr to apply the above equation
+
+- delete the old column. Out with the old, in the with the New
+
+- create a new column which is the average of the row
+
+In theory, this should give us the covid Resiliency score, right? 
+
+#### Applying the Model
+
+```{r}
+scoreDF <- bloombergData %>%
+  select(resilience, vaccine.Coverage, lockdown.Severity, flight.Cap, routes, one.Month.Cases, three.Month.Fatalities, deaths, test.Rate, mobility, gdp, healthcare, dev.Index) %>%
+  mutate(
+    vaccineCoverageScore = 100 * ( (vaccine.Coverage - min(vaccine.Coverage)) / ( max(vaccine.Coverage) - min(vaccine.Coverage))),
+    
+    lockdownSeverityScore = 100 * ( (lockdown.Severity - min(lockdown.Severity)) / ( max(lockdown.Severity) - min(lockdown.Severity))),
+    
+    flightCapScore = 100 * ( (flight.Cap - min(flight.Cap)) / ( max(flight.Cap) - min(flight.Cap))),
+    
+    routeScore = 100 * ( (routes - min(routes)) / ( max(routes) - min(routes))),
+    
+    oneMonthScore = 100 * ( (one.Month.Cases - min(one.Month.Cases)) / ( max(one.Month.Cases) - min(one.Month.Cases))),
+    
+    threeMonthScore = 100 * ( (three.Month.Fatalities - min(three.Month.Fatalities)) / ( max(three.Month.Fatalities) - min(three.Month.Fatalities))),
+    
+    deathScore = 100 * ( (deaths - min(deaths)) / ( max(deaths) - min(deaths))),
+    
+    testRateScore = 100 * ( (test.Rate - min(test.Rate, na.rm = TRUE)) / ( max(test.Rate, na.rm = TRUE) - min(test.Rate, na.rm = TRUE))),
+    
+    mobilityScore = 100 * ( (mobility - min(mobility, na.rm = TRUE)) / ( max(mobility, na.rm = TRUE) - min(mobility, na.rm = TRUE))),
+    
+    gdpScore = 100 * ( (gdp - min(gdp)) / ( max(gdp) - min(gdp))),
+    
+    healthcareScore = 100 * ( (healthcare - min(healthcare, na.rm = TRUE)) / ( max(healthcare, na.rm = TRUE) - min(healthcare, na.rm = TRUE))),
+    
+    devIndexScore = 100 * ( (dev.Index - min(dev.Index)) / ( max(dev.Index) - min(dev.Index))),
+    
+    .keep = 'none'
+  )
+
+scoreDF$newScores<- rowMeans(scoreDF)
+
+scoreDF <- scoreDF %>%
+  relocate(newScores, .before = vaccineCoverageScore)
+
+(review <- data.frame(bloombergData$resilience, scoreDF$newScores))
+
+
+```
+
+#### What did we Find out?
+
+So, if we look at the resilience Score we came up with, they are not consistent with Bloomberg's resilience score at all.
+
+The first natural question is: "Maybe there's a weight attached to each of the indicators?" That would be a good idea, until you read this section in the paragraph in question:
+
+> "The final Bloomberg Resilience Score is the average of a place’s performance across the 12 indicators, equally weighted."
+
+It is possible that they did a form of scaling outside just this formula, but they did not specify. 
+
+This miscalculation leaves us with a halt in modeling capabilities. If we cannot replicate the current resilience score, then we cannot effectively weigh our variables again, which will make our final recommendation not only skewed, but flat-out statistically incorrect. 
+
+This is why I looked to a new dataset, especially the one from @cartesianFaith
+
+
+
+## Why not another dataset?
+
+There were a few options, but for this one I liked it's initial simplicity in regards to business decisions. Something that has fascinated me is how many wildly expensive business decisions that have been made on the back of a small bar napkin and over a quick handshake. Millions of dollars have been passed back and forth based on minimal detail from highly trustworthy sources. For instance, the insurance industry. There have been multi-million dollar deals for insurance packages that have been completed over two people having a small conversation. Why is that?
+
+That is because of trust.
+
+### Trust - a note
+
+Trust is something that is changing very quickly - I would say that it is the main driver behind the creation of Web3. For so long, trust has worked like this:
+
+```{r load-packages, include=TRUE}
+library(dagitty)
+dag_trust <- dagitty("dag{
+  party1 <- trust -> party2 
+  party1 -> trust <- party2
+  decisions <- party2
+  }"
+)
+coordinates(dag_trust) <- list(
+  x=c(party1=0,party2=2,trust=1,decisions=2),
+  y=c(party1=1,party2=1,trust=0,decisions=1.5) 
+  )
+plot(dag_trust)
+
+```
+
+The point of this diagram is to say that, for party 1 to communicate with a party 2 that makes business decision, there must be trust. Trust is built from the following aspects:
+
+- Previous relationship
+
+- Brand Recognition
+
+- Word of Mouth
+
+For many as of now, we trust certain brands with our money - we buy a pair of shoes from Nike over Clarks because Nike has an established brand that we trust due to it's extensive word of mouth and recognition. 
+
+
+
+### Bringing trust to Bloomberg
+
+If we look at Bloomberg, we trust what they put out in terms of news, data, etc., is trusted because of the same reasons above. So when someone is asked at a company:
+
+> which of our factories are at a high risk of workers comp due to Covid?
+
+I imagine that the employee may look to the internet for answers. This resiliency score, if verified, would be a great way to give an answer to your boss. 
+
+## What factors are considered when discussing claims Management?
+
+The short version is: it anything that could create a claim. 
+
+Something that makes global claims management so tricky is that, for the most part, insurance packages are done in accordance to country laws, which vary greatly in certain areas, such as workers compensation. 
+
+For those who are unfamiliar, you usually are elligible for workers compensation if you get injured on the job due to something out of yoru control. So, if you purposefully drive the forklift into the shelf, you cannot claim workers comp. But if your company did not maintain the forklift and a sticky accelerator caused the accident, then you would get workers comp. 
+
+The tricky part comes in when we discuss workers comp in reletation to sicknesses. On the National Conference of State Legislatures, they had this to say about illnesses and workers compensation:
+
+> "Generally, workers’ compensation does not cover routine community-spread illnesses like a cold or the flu because they usually cannot be directly tied to the workplace. Some states have made exceptions for certain workers who develop chronic illnesses, like cancer, resulting from repeated exposure to harmful materials and environments. "
+
+@NCSL
+
+The natural response to this is that people can get Covid as a response from exposure to the virus at their job, similarly to someone becoming ill from "exposure to harmful materials" @NCSL. That being said, I think the distinction between Covid-19 and other viruses, like the Flu, is that there are common medicines that make recovery easy, while there are no current medicines other than the vaccine to protect against Covid. 
+
+That being said, this is not to say that workers comp covers everything regarding Covid. Workers compensation usually comes in the form of:
+
+- The cost of Hospitalization
+
+- The cost of Death insurance
+
+That being said, in the United States alone, the only two states that require death benefits from Covid are New York and California (@NCSL). That being said, COVID deaths are still a good measurement of risk for insurance assessment. If someone were to die from Covid, this means that they were likely in a hospital beforehand, which raises the chance that there will need to be a claim. With that knowledge, we can say that, with a higher fatality rate, there is a higher risk of claims. 
+
+In this paper, hospitalization data would be wonderful, but finding hospitalization rates that fit with the data for the same countries as is on this ranking list is difficult. For that reason, I will apply a greater weight on fatalities. 
+
+
+## Adding new Data?
+
+In this paper, the insurance element can always be expanded upon. Due to personal time restraints, we were unable to gather new datapoints that would help add onto our own Covid Resiliency Rankings. 
+
+One of the key difficult points to this is the interactions between global claims packages and different foreign rules and regulations. 
+
+Another is how one would calculate average claims dollars spent per country.
+
+
+An initial thought would be to do it by company in these countries @reinsurance 
+
+By seeing general claims from companies, one could get a sense of monies lost per company, then attribute those losses to the company's headquartered country. 
+
+Afterwards you would then ad this as a new variable for each of the 52 countries, which makes it easy to add the variable into the regression.
+
+This factor would carry a large weight since Insurance companies rely heavily on historical data to make future predictions on Insurance Risk Management.
+
+
+# References
